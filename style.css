@@ -1,0 +1,32 @@
+body {
+    background-color: beige;
+
+}
+h1{
+    .loginpage{
+        background-color: lightskyblue;
+        text-align: left;
+    }
+    
+    
+}
+h2{
+    text-align: center;
+}
+.login-box{
+    text-align: center;
+    .inputs{
+        width: 200px;
+        height: 20px;
+        font-size: 18px;
+    }
+    .space-input{
+        margin-bottom: 10px;
+    }
+    .button:hover{
+        width: 80px;
+        height: 30px;
+        font-size: 15px;
+        text-decoration: none;
+    }
+}
