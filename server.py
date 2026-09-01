@@ -20,7 +20,7 @@ MESSAGES_FILE = os.path.join(BASE_DIR, "messages.json")
 #     "Bob": websocket
 # }
 users = {}
-
+ 
 
 def load_messages():
     """Load messages from messages.json."""

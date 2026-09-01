@@ -19,7 +19,7 @@ async def test():
             "type": "login",
             "username": "Alice"
         }))
-
+ 
         response = await websocket.recv()
 
         print("Login response:")

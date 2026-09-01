@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ImesgU</title>
         <link rel="stylesheet" href="style.css">
-        <script src="Main.js"></script>
     </head>
 
     <body>
@@ -18,19 +17,20 @@
                 id="username"
                 placeholder="Username"
             >
+            <span id="usernameError" class="error-msg" style="display: none;">Username taken!</span>
             <br>
             <input
                 class="inputs space-input"
                 type="password"
-                id="password"
+                id="password" 
                 placeholder="Password"
             >
             <br>
+            <p id="empty" class="error-msg" style="display: none;"></p>
             <button id="loginButton" class="button">
-                <a href="Chatlog.html" class="button ">Login</a>
+                Login
             </button>
-            <p id="message"></p>
         </div>
-        <script src="Main.js"></script>
+          <script src="Main.js"></script>
     </body>
 </html>

@@ -3,12 +3,20 @@ const loginbutton= document.getElementById("loginButton");
 loginbutton.addEventListener("click",function(){
     const username= document.getElementById("username").value;
     const password= document.getElementById("password").value;
-    if (username===""||password===""){
-        document.getElementById("message").textContent=
-        "Enter username and password:";
-    } else{
-        document.getElementById("message").textContent=
-        "Logined in!"
+    const errorContainer= document.getElementById("empty");
+    if(username===""||password===""){
+        errorContainer.style.display='block';
+        errorContainer.textContent="Username or password is empty";
+    }
+    
+    else if (password.length<12){
+        errorContainer.style.display='block'
+        errorContainer.textContent="password must be longer!"
+
+    }
+    else{
+        errorContainer.style.display='none';
+        window.location.href="Chatlog.html";
     }
 
 });

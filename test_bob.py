@@ -15,7 +15,7 @@ async def test():
                 "type": "login",
                 "username": "Bob"
             }))
-
+ 
             async for message in websocket:
                 data = json.loads(message)
 

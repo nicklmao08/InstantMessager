@@ -13,6 +13,10 @@ h1{
 h2{
     text-align: center;
 }
+.error-msg{
+    color: red;
+    display: none;
+}
 .login-box{
     text-align: center;
     .inputs{
@@ -20,6 +24,7 @@ h2{
         height: 20px;
         font-size: 18px;
     }
+   
     .space-input{
         margin-bottom: 10px;
     }

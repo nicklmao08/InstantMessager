@@ -31,3 +31,4 @@ then to save changes, u need all three down here
 | send_message                 | C → S     | { "conversation_id": 10, "content": "Hello!" }                                                                                   |
 | new_message                  | S → C     | { "message_id": 57, "conversation_id": 10, "sender_id": 1, "sender_username": "Alice", "content": "Hello!", "timestamp": "..." } |
 | error                        | S → C     | { "code": "...", "message": "..." }                                                                                              |
+ 
