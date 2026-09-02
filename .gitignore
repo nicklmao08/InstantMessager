@@ -7,3 +7,4 @@ venv/
 .env
 .vscode/
 messages.json
+testFrontend.html
