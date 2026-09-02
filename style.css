@@ -1,48 +1,86 @@
 body {
-    background-color: white;
+    background-image: url('Images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    margin: 0;
+    .logo-img{
+        max-width: 200px;
+        max-height: 150px;
+        display: block;
+        top: -20px;
+        left: 20px;
+        margin: 0;
+    }
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 
 }
-.logo-img{
-    max-width: 150px;
-    height: 50px;
+
+.login-box{
     display: block;
-}
-.center{
     margin-left: auto;
     margin-right: auto;
-    max-width: 250px;
-    height: 150px;
+        h2{
+            text-align: center;
+            font: bold 24px "Times New Roman", Times, serif; 
+        }
+        .userIcon{
+            max-width: 150px;
+            max-height: 100px;
+        }
+        .inputs{
+            width: 200px;
+            height: 20px;
+            font-size: 18px;
+        }
+        .error-msg{
+            color: red;
+            display: none;
+            text-align: center;
+        }
+        .button:hover{
+            width: 80px;
+            height: 30px;
+            font-size: 15px;
+            text-decoration: none;
+        }
+        .space-input{
+            margin-bottom: 10px;
+        }
 }
-h1{
-    .loginpage{
-        background-color: lightskyblue;
-        text-align: left;
+.screen {
+    display: flex;
+    height: 100vh;
+    .sidebar{
+        width: 30%;
+        max-width: 250px;
+        background: white;
+        border-right: 1px solid black;
     }
-    
-    
 }
-h2{
-    text-align: center;
+.contact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 15px;
+
+    cursor: pointer;
+
+    border-bottom: 1px solid #eee;
 }
-.error-msg{
-    color: red;
-    display: none;
+.contact:hover {
+    background: #f3f3f3;
 }
-.login-box{
-    text-align: center;
-    .inputs{
-        width: 200px;
-        height: 20px;
-        font-size: 18px;
-    }
-   
-    .space-input{
-        margin-bottom: 10px;
-    }
-    .button:hover{
-        width: 80px;
-        height: 30px;
-        font-size: 15px;
-        text-decoration: none;
-    }
+.contactIcon{
+    width: 20px;
+    height: 20px;
+}
+
+.head{
+    display: flex;
+    flex-direction: row;
+    gap: 60px;
 }
