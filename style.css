@@ -93,7 +93,7 @@ body {
 }
 
 .messages{
-    flex:1;
+    flex:6;
     overflow-y:auto;
     background: gray;
 }
@@ -110,14 +110,21 @@ body {
     width: fit-content;
 }
 .message-input{
-    flex: 1;
+    display: flex;
     outline: none;
+    width: 96.5%;
+    padding: 20px;
     border: 1px solid black;
 }
 .message-input input{
     flex: 1;
     outline: none;
     border: 1px solid #ccc;
+}
+.type{
+    display: flex;
+    width: 150%;
+    padding: 15px;
 }
 .head{
     display: flex;
