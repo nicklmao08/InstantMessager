@@ -10,7 +10,6 @@ body {
         max-width: 200px;
         max-height: 150px;
         display: block;
-        position: absolute;
         top: -20px;
         left: 20px;
         margin: 0;
@@ -51,22 +50,35 @@ body {
             margin-bottom: 10px;
         }
 }
-
-
-.scroll-box{
-    width: 300px;
-    height: 360px;
-    border: none;
-    overflow-y: auto;
-    overflow-x: hidden;
-    text-align: center;
+.screen {
+    display: flex;
+    height: 100vh;
+    .sidebar{
+        width: 30%;
+        max-width: 250px;
+        background: white;
+        border-right: 1px solid black;
+    }
 }
-.addcontact{
+.contact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 15px;
+
+    cursor: pointer;
+
+    border-bottom: 1px solid #eee;
+}
+.contact:hover {
+    background: #f3f3f3;
+}
+.contactIcon{
     width: 20px;
     height: 20px;
-    border: none;
-    outline: none;
 }
+
 .head{
     display: flex;
     flex-direction: row;
