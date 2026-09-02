@@ -79,6 +79,46 @@ body {
     height: 20px;
 }
 
+.chat{
+    flex:1;
+
+    display: flex;
+    flex-direction: column;
+}
+.chathead{
+    display: flex;
+    align-items:center;
+    gap:10px;
+    border-bottom: 1px solid black;
+}
+
+.messages{
+    flex:1;
+    overflow-y:auto;
+    background: gray;
+}
+.sent{
+    background: wheat;
+    color: white;
+    width: fit-content;
+    max-width: 60%;
+
+}
+.recieved{
+    background: white;
+    max-width: 60%;
+    width: fit-content;
+}
+.message-input{
+    flex: 1;
+    outline: none;
+    border: 1px solid black;
+}
+.message-input input{
+    flex: 1;
+    outline: none;
+    border: 1px solid #ccc;
+}
 .head{
     display: flex;
     flex-direction: row;

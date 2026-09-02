@@ -21,12 +21,54 @@ loginbutton.addEventListener("click",function(){
 
 });
 //Add contact button
-const addcontact= document.getElementById(addcontact);
-const chatListContainer=document.querySelector('chatlistcontainer');
-addcontact.addEventListener('click',()=>{
-    const newRow=document.createElement('div');
-    newRow.classList.add('chat-row');
-    newRow.setAttribute('name','Lemao lol')
-    
+let currentcontact=null;
 
-})
+let conversations={
+    Mom:[{
+        text:"lu udh makan?",
+        type:"recieved"
+    }
+    ],
+    Dad:[{
+        text:"udh kirim uang ya",
+        type:"recieved"
+    }]
+}
+function openChat(contactName) {
+
+    currentContact = contactName;
+
+    document.getElementById("contactName").textContent =
+        contactName;
+
+    displayMessages();
+}
+function displayMessages() {
+
+    const messagesDiv =
+        document.getElementById("messages");
+
+    messagesDiv.innerHTML = "";
+
+    const messages =
+        conversations[currentContact];
+
+
+    messages.forEach(message => {
+
+        const messageElement =
+            document.createElement("div");
+
+        messageElement.textContent =
+            message.text;
+
+        messageElement.classList.add(
+            message.type
+        );
+
+        messagesDiv.appendChild(
+            messageElement
+        );
+
+    });
+}
