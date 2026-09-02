@@ -5,6 +5,10 @@
 **Project:** InstantMessager  
 **Deadline:** September 6, 2026
 
+This protocol implements the concepts defined in the [Conversation Design](Conversation_Design.md).
+
+The Conversation Design describes the structure and behavior of the messaging system, while this document defines the messages exchanged between the client and server to implement that design.
+
 ---
 
 # 1. Communication Method
@@ -170,7 +174,7 @@ The client requests a new conversation:
 {
   "type": "create_conversation",
   "name": "Alice and Bob",
-  "participant_ids": [1, 2]
+  "participants_ids": [1, 2]
 }
 ```
 
@@ -183,7 +187,7 @@ The server responds:
   "conversation": {
     "conversation_id": 10,
     "name": "Alice and Bob",
-    "participant_ids": [1, 2]
+    "participants": [1, 2]
   }
 }
 ```

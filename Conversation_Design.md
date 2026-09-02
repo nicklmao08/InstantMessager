@@ -55,9 +55,9 @@ Example:
 }
 ```
 
-A conversation contains a list of participants.
+A conversation contains a list of participants. Only participants of a conversation can access its messages or send messages to that conversation.
 
-Only participants of a conversation can access its messages or send messages to that conversation.
+When creating a conversation, the client specifies participants using their user IDs through the participant_ids field. Existing conversations represent these users as participants.
 
 # 3. Conversation Structure
 
@@ -187,3 +187,16 @@ The conversation design follows these principles:
 6. Connected users receive messages immediately.
 7. Offline users can retrieve previous messages later.
 8. Messages from different conversations remain separated.
+
+# 9. Relationship to Client-Server Protocol
+
+The conversation design defines the concepts and behavior of the messaging system. These concepts are implemented through the client-server protocol.
+
+For example:
+
+- Users are managed through `login`, `get_users`, and `user_status`.
+- Conversations are managed through `get_conversations` and `create_conversation`.
+- Messages are retrieved through `get_messages`.
+- New messages are sent using `send_message` and delivered using `new_message`.
+
+For the detailed message formats and communication flow, see [Client-Server Protocol](Client_Server_Protocol.md).
