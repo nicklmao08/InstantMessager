@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ChatLog</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add_2" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=send" />
         <link rel="stylesheet" href="style.css">
         <script src="Main.js"></script>
     </head>
@@ -33,7 +33,7 @@
 
             <div class="chat">
 
-                <div class="chathead">
+                <div class="chathead chatborder">
                     <img src="Images/user.png" class="contactIcon">
                     <h3 id="contactName">Select a contact</h3>
                 </div>
@@ -53,16 +53,19 @@
                     placeholder="Type a message..."
                 >
 
-                <button onclick="sendMessage()">
-                    Send
-                </button>
+                 <button onclick="sendMessage()">
+                <span class="material-symbols-outlined">send</span>
+            </button>
 
-                </div>
-
-            </div>
         </div>
 
-</div> 
-    </body>
-   
+    </div>
+
+</div>
+
+
+<script src="chat.js"></script>
+
+</body>
+
 </html>
