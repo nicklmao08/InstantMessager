@@ -3,12 +3,12 @@ let currentcontact=null;
 
 let conversations={
     Mom:[{
-        text:"lu udh makan?",
+        text:"message",
         type:"received"
     }
     ],
     Dad:[{
-        text:"udh kirim uang ya",
+        text:"message",
         type:"received"
     }]
 }
