@@ -112,12 +112,6 @@ function sendMessage() {
         type: "sent"
     });
 
-    socket.send(JSON.stringify({
-        type: "send_message",
-        to: currentContact,
-        content: message
-    }));
-
     input.value = "";
     displayMessages();
 }
