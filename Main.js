@@ -1,22 +1,33 @@
 //Button
-const loginbutton= document.getElementById("loginButton");
-loginbutton.addEventListener("click",function(){
-    const username= document.getElementById("username").value;
-    const password= document.getElementById("password").value;
-    const errorContainer= document.getElementById("empty");
-    if(username===""||password===""){
-        errorContainer.style.display='block';
-        errorContainer.textContent="Username or password is empty";
-    }
-    
-    else if (password.length<8){
-        errorContainer.style.display='block'
-        errorContainer.textContent="password must be longer!"
 
-    }
-    else{
-        errorContainer.style.display='none';
-        window.location.href="Chatlog.html";
-    }
+const loginbutton= document.getElementById("loginButton");
+
+loginbutton.addEventListener("click",function(){
+
+const username= document.getElementById("username").value;
+
+const password= document.getElementById("password").value;
+
+const errorContainer= document.getElementById("empty");
+
+if(username===""||password===""){
+
+errorContainer.style.display='block';
+
+errorContainer.textContent="Username or password is empty";
+
+}
+else if (password.length<8){
+    errorContainer.style.display='block'
+    errorContainer.textContent="password must be longer!"
+
+}
+else{
+    errorContainer.style.display='none';
+
+    sessionStorage.setItem("username", username);
+
+    window.location.href="Chatlog.html";
+}
 
 });

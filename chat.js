@@ -1,4 +1,3 @@
-
 let currentcontact=null;
 
 let conversations={
@@ -12,6 +11,36 @@ let conversations={
         type:"received"
     }]
 }
+
+const username = sessionStorage.getItem("username");
+const socket = new WebSocket("ws://10.176.31.71:8765");
+
+socket.onopen = function() {
+    socket.send(JSON.stringify({
+        type: "login",
+        username: username
+    }));
+};
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "message") {
+        if (!conversations[data.from]) {
+            conversations[data.from] = [];
+        }
+
+        conversations[data.from].push({
+            text: data.content,
+            type: "received"
+        });
+
+        if (currentContact === data.from) {
+            displayMessages();
+        }
+    }
+};
+
 /*click contact  */
 function openChat(contactName) {
 
@@ -40,6 +69,13 @@ function sendMessage() {
         text: message,
         type: "sent"
     });
+
+    socket.send(JSON.stringify({
+        type: "send_message",
+        to: currentContact,
+        content: message
+    }));
+
     input.value = "";
     displayMessages();
 }
