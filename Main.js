@@ -4,11 +4,9 @@ const loginbutton= document.getElementById("loginButton");
 
 loginbutton.addEventListener("click",function(){
     const username= document.getElementById("username").value.trim();
-    const serverIP= document.getElementById("serverIp").value.trim();
-    const serverPort= document.getElementById("serverPort").value.trim();
     const password= document.getElementById("password").value.trim();
     const errorContainer= document.getElementById("empty");
-    if(username===""||password===""|| serverIP===""|| serverPort===""){
+    if(username===""||password===""){
         errorContainer.style.display='block';
         errorContainer.textContent="Fill in all the fields";
     }
@@ -19,8 +17,6 @@ loginbutton.addEventListener("click",function(){
 
     }
     else{
-        sessionStorage.setItem("serverIp", serverIp);
-        sessionStorage.setItem("serverPort", serverPort);
         sessionStorage.setItem("username", username);
         errorContainer.style.display='none';
         window.location.href="Chatlog.html";
