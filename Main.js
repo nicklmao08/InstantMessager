@@ -3,31 +3,26 @@
 const loginbutton= document.getElementById("loginButton");
 
 loginbutton.addEventListener("click",function(){
+    const username= document.getElementById("username").value.trim();
+    const serverIP= document.getElementById("serverIp").value.trim();
+    const serverPort= document.getElementById("serverPort").value.trim();
+    const password= document.getElementById("password").value.trim();
+    const errorContainer= document.getElementById("empty");
+    if(username===""||password===""|| serverIP===""|| serverPort===""){
+        errorContainer.style.display='block';
+        errorContainer.textContent="Fill in all the fields";
+    }
+    
+    else if (password.length<8){
+        errorContainer.style.display='block'
+        errorContainer.textContent="password must be longer!"
 
-const username= document.getElementById("username").value;
-
-const password= document.getElementById("password").value;
-
-const errorContainer= document.getElementById("empty");
-
-if(username===""||password===""){
-
-errorContainer.style.display='block';
-
-errorContainer.textContent="Username or password is empty";
-
-}
-else if (password.length<8){
-    errorContainer.style.display='block'
-    errorContainer.textContent="password must be longer!"
-
-}
-else{
-    errorContainer.style.display='none';
-
-    sessionStorage.setItem("username", username);
-
-    window.location.href="Chatlog.html";
-}
-
+    }
+    else{
+        sessionStorage.setItem("serverIp", serverIp);
+        sessionStorage.setItem("serverPort", serverPort);
+        sessionStorage.setItem("username", username);
+        errorContainer.style.display='none';
+        window.location.href="Chatlog.html";
+    }
 });

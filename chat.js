@@ -1,58 +1,99 @@
-let currentcontact=null;
+const currentUsername = sessionStorage.getItem("username");
+let currentContact = null;
+let users = [];
 
-let conversations={
-    Mom:[{
-        text:"message",
-        type:"received"
+let conversations = {
+    Mom: {
+        members: [currentUsername, "Mom"],
+        messages: [
+            {
+                sender: "Mom",
+                text: "message",
+                type: "received"
+            }
+        ]
+    },
+
+    Dad: {
+        members: [currentUsername, "Dad"],
+        messages: [
+            {
+                sender: "Dad",
+                text: "udh kirim uang",
+                type: "received"
+            }
+        ]
     }
-    ],
-    Dad:[{
-        text:"message",
-        type:"received"
-    }]
+};
+
+/* Up users */
+function updateUsers(newUsers) {
+
+    users = newUsers.filter(function(user) {
+        return user.username !== currentUsername;
+    });
+
+    renderUsers();
 }
 
-const username = sessionStorage.getItem("username");
-const socket = new WebSocket("ws://10.176.31.71:8765");
+/* Display users */
+function renderUsers() {
 
-socket.onopen = function() {
-    socket.send(JSON.stringify({
-        type: "login",
-        username: username
-    }));
-};
+    const usersDiv =
+        document.getElementById("onlineUsers");
+    usersDiv.innerHTML = "";
+    users.forEach(function(user) {
+        const userDiv =
+            document.createElement("div");
+        userDiv.classList.add("contact");
 
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "message") {
-        if (!conversations[data.from]) {
-            conversations[data.from] = [];
-        }
-
-        conversations[data.from].push({
-            text: data.content,
-            type: "received"
+        userDiv.addEventListener("click", function() {
+            openUserChat(user.username);
         });
+        const userIcon =
+            document.createElement("img");
+        userIcon.src = "Images/user.png";
+        userIcon.classList.add("contactIcon");
 
-        if (currentContact === data.from) {
-            displayMessages();
+        const username =
+            document.createElement("span");
+        username.textContent = user.username;
+        // Status
+        const status =
+            document.createElement("span");
+        status.classList.add("status-dot");
+        if (user.status === "online") {
+            status.classList.add("status-online");
         }
+        else {
+            status.classList.add("status-offline");
+        }
+        userDiv.appendChild(userIcon);
+        userDiv.appendChild(username);
+        userDiv.appendChild(status);
+        usersDiv.appendChild(userDiv);
+    });
+}
+
+function openUserChat(username) {
+    if (!conversations[username]) {
+        conversations[username] = {
+            members: [currentUsername, username],
+            messages: []
+        };
     }
-};
+    openChat(username);
+}
 
-/*click contact  */
 function openChat(contactName) {
-
     currentContact = contactName;
-
     document.getElementById("contactName").textContent =
         contactName;
-
     displayMessages();
 }
 
-/*send Message*/
+
+/* Send mesg */
 function sendMessage() {
     const input =
         document.getElementById("messageInput");
@@ -65,7 +106,8 @@ function sendMessage() {
     if (message === "") {
         return;
     }
-    conversations[currentContact].push({
+    conversations[currentContact].messages.push({
+        sender: currentUsername,
         text: message,
         type: "sent"
     });
@@ -79,6 +121,9 @@ function sendMessage() {
     input.value = "";
     displayMessages();
 }
+
+
+/* Press Enter */
 document
     .getElementById("messageInput")
     .addEventListener("keydown", function(event) {
@@ -87,14 +132,18 @@ document
         }
     });
 
-/*Display message */
+
+/* Disp mesg */
 function displayMessages() {
     const messagesDiv =
         document.getElementById("messages");
     messagesDiv.innerHTML = "";
+    if (currentContact === null) {
+        return;
+    }
     const messages =
-        conversations[currentContact];
-    messages.forEach(message => {
+        conversations[currentContact].messages;
+    messages.forEach(function(message) {
         const messageElement =
             document.createElement("div");
         messageElement.textContent =
@@ -107,3 +156,52 @@ function displayMessages() {
         );
     });
 }
+
+
+/* Rec msg */
+function receiveMessage(conversationName, sender, text) {
+    if (!conversations[conversationName]) {
+
+        conversations[conversationName] = {
+            members: [currentUsername, sender],
+            messages: []
+        };
+    }
+    conversations[conversationName].messages.push({
+        sender: sender,
+        text: text,
+        type: "received"
+    });
+    if (currentContact === conversationName) {
+        displayMessages();
+    }
+}
+
+
+/*  testing */
+updateUsers([
+    {
+        username: currentUsername,
+        status: "online"
+    },
+
+    {
+        username: "Mom",
+        status: "online"
+    },
+
+    {
+        username: "Dad",
+        status: "offline"
+    },
+
+    {
+        username: "Bob",
+        status: "online"
+    },
+
+    {
+        username: "Nick",
+        status: "offline"
+    }
+]);
