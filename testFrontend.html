@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>WebSocket Test Client</h2>
+
+<input id="username" placeholder="Username">
+<button onclick="login()">Login</button>
+
+<hr>
+
+<input id="recipient" placeholder="Recipient">
+<input id="message" placeholder="Message">
+<button onclick="sendMessage()">Send</button>
+
+<hr>
+
+<pre id="log"></pre>
+
+<script>
+let socket;
+
+function log(text) {
+    document.getElementById("log").textContent += text + "\n";
+}
+
+function connect() {
+    socket = new WebSocket("ws://localhost:8765");
+
+    socket.onopen = () => {
+        log("Connected");
+    };
+
+    socket.onmessage = (event) => {
+        log("Received: " + event.data);
+    };
+
+    socket.onclose = () => {
+        log("Disconnected");
+    };
+
+    socket.onerror = (err) => {
+        log("Error");
+        console.error(err);
+    };
+}
+
+function login() {
+    if (!socket) {
+        connect();
+
+        socket.onopen = () => {
+            const username =
+                document.getElementById("username").value;
+
+            socket.send(JSON.stringify({
+                type: "login",
+                username: username
+            }));
+
+            log("Login sent");
+        };
+
+        return;
+    }
+
+    const username =
+        document.getElementById("username").value;
+
+    socket.send(JSON.stringify({
+        type: "login",
+        username: username
+    }));
+
+    log("Login sent");
+}
+
+function sendMessage() {
+    const recipient =
+        document.getElementById("recipient").value;
+
+    const content =
+        document.getElementById("message").value;
+
+    socket.send(JSON.stringify({
+        type: "send_message",
+        to: recipient,
+        content: content
+    }));
+
+    log("Message sent");
+}
+</script>
+
+</body>
+</html>

@@ -1,5 +1,7 @@
 //Button
+
 const loginbutton= document.getElementById("loginButton");
+
 loginbutton.addEventListener("click",function(){
     const username= document.getElementById("username").value.trim();
     const serverIP= document.getElementById("serverIp").value.trim();
