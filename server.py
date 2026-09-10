@@ -47,6 +47,7 @@ def save_message(sender, recipient, content):
     messages = load_messages()
 
     message = {
+        "type": "message",
         "from": sender,
         "to": recipient,
         "content": content,

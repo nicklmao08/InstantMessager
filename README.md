@@ -1,20 +1,30 @@
 ﻿# InstantMessager
-whatsgood gang gang
 
-# Github
-to get started jus google "how to start working on a git repository in vscode"
+# Documentation
+The project documentation is divided into two main parts:
+
+- [Conversation Design](Conversation_Design.md) — defines the structure and behavior of users, conversations, participants, and messages.
+- [Client-Server Protocol](Client_Server_Protocol.md) — defines how the client and server communicate using WebSockets and JSON.
+
+The Conversation Design describes what the system should do, while the Client-Server Protocol describes how the client and server implement that design.
+
+# GitHub
+to get started just google "how to start working on a git repository in vscode"
 if this file gets on your PC then it has worked
 
 after that, every time you wanna work, use this command in the terminal:
-1. "git pull" to get the newest version from github. PLS dont forget to do this BEFORE working. Just in case.
+1. "git pull" to get the newest version from github. Please dont forget to do this BEFORE working. Just in case.
 
-then to save changes, u need all three down here
-2. "git add ."
-3. "git commit {message}" put in whatever the change was
-4. "git push"
+To save changes:
+1. `git status` — check which files changed.
+2. `git add <file>` — add only the files you want to commit.
+3. `git commit -m "Describe your changes"`
+4. `git push`
 
-# JSON Formatting
-| Message                      | Direction | JSON inside data                                                                                                                 |
+# Protocol Summary
+The following table provides a quick overview of the client-server message types. For the complete protocol specification and examples, see [Client-Server Protocol](Client_Server_Protocol.md).
+
+| Message | Direction | Example Payload |
 | ---------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | connected                    | S → C     | { "protocol_version": "1.0" }                                                                                                    |
 | login                        | C → S     | { "username": "Alice" }                                                                                                          |
