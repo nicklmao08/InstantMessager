@@ -3,6 +3,8 @@
 **Project:** InstantMessager  
 **Deadline:** September 13, 2026
 
+**Members:** 陈淳希 1820242104, 余善炜 1820242133, 陈瑞玲 1820242113, 谢粮璟 1820242151, 刘颖妮 1820242126
+
 # 1. Concurrency Approach
 
 InstantMessager uses Python `asyncio` together with WebSockets to handle multiple users concurrently.

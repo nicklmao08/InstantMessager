@@ -1,57 +1,102 @@
 import asyncio
 import json
+
 import websockets
 
 
+SERVER_URI = "ws://localhost:8765"
+
+
+async def receive_json(websocket, label):
+    """Receive and print one JSON message."""
+    response = json.loads(await websocket.recv())
+
+    print(f"\n{label}:")
+    print(json.dumps(response, indent=2))
+
+    return response
+
+
 async def test():
-    uri = "ws://localhost:8765"
+    async with websockets.connect(SERVER_URI) as websocket:
 
-    async with websockets.connect(uri) as websocket:
+        # --------------------------------------------------
+        # 1. Connection
+        # --------------------------------------------------
+        await receive_json(
+            websocket,
+            "Connected response"
+        )
 
-        response = await websocket.recv()
+        # --------------------------------------------------
+        # 2. Login as Bob
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "login",
+                "username": "Bob"
+            })
+        )
 
-        print("Connected response:")
-        print(json.dumps(json.loads(response), indent=2))
+        login_response = await receive_json(
+            websocket,
+            "Login response"
+        )
 
-        await websocket.send(json.dumps({
-            "type": "login",
-            "username": "Bob"
-        }))
+        if not login_response.get("success"):
+            print("\nBob login failed.")
+            return
 
-        response = await websocket.recv()
+        # --------------------------------------------------
+        # 3. Initial user list and status
+        # --------------------------------------------------
+        await receive_json(
+            websocket,
+            "User list"
+        )
 
-        print("\nLogin response:")
-        print(json.dumps(json.loads(response), indent=2))
+        await receive_json(
+            websocket,
+            "User status"
+        )
 
-        response = await websocket.recv()
+        # --------------------------------------------------
+        # 4. Get users
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "get_users"
+            })
+        )
 
-        print("\nUser list:")
-        print(json.dumps(json.loads(response), indent=2))
+        await receive_json(
+            websocket,
+            "Get users response"
+        )
 
-        response = await websocket.recv()
-
-        print("\nUser status:")
-        print(json.dumps(json.loads(response), indent=2))
-
-        await websocket.send(json.dumps({
-            "type": "get_users"
-        }))
-
-        response = await websocket.recv()
-
-        print("\nGet users response:")
-        print(json.dumps(json.loads(response), indent=2))
-
+        # --------------------------------------------------
+        # 5. Keep Bob connected
+        # --------------------------------------------------
         print("\nBob is connected.")
         print("Waiting for messages...")
 
         try:
-            async for message in websocket:
+            while True:
+                response = await websocket.recv()
+
+                message = json.loads(response)
+
                 print("\nReceived:")
-                print(json.dumps(json.loads(message), indent=2))
+                print(
+                    json.dumps(
+                        message,
+                        indent=2
+                    )
+                )
 
         except websockets.exceptions.ConnectionClosed:
-            print("Disconnected from server.")
+            print("\nBob connection closed.")
 
 
-asyncio.run(test())
+if __name__ == "__main__":
+    asyncio.run(test())

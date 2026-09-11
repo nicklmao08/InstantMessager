@@ -1,90 +1,163 @@
 import asyncio
 import json
+
 import websockets
 
 
+SERVER_URI = "ws://localhost:8765"
+
+
+async def receive_json(websocket, label):
+    """Receive and print one JSON message."""
+    response = json.loads(await websocket.recv())
+
+    print(f"\n{label}:")
+    print(json.dumps(response, indent=2))
+
+    return response
+
+
 async def test():
-    uri = "ws://localhost:8765"
+    async with websockets.connect(SERVER_URI) as websocket:
 
-    async with websockets.connect(uri) as websocket:
+        # --------------------------------------------------
+        # 1. Connection
+        # --------------------------------------------------
+        await receive_json(
+            websocket,
+            "Connected response"
+        )
 
-        response = await websocket.recv()
-        print("Connected response:")
-        print(json.dumps(json.loads(response), indent=2))
+        # --------------------------------------------------
+        # 2. Login as Alice
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "login",
+                "username": "Alice"
+            })
+        )
 
-        await websocket.send(json.dumps({
-            "type": "login",
-            "username": "Alice"
-        }))
+        login_response = await receive_json(
+            websocket,
+            "Login response"
+        )
 
-        response = await websocket.recv()
-        print("\nLogin response:")
-        print(json.dumps(json.loads(response), indent=2))
+        if not login_response.get("success"):
+            print("\nAlice login failed.")
+            return
 
-        response = await websocket.recv()
-        print("\nUser list:")
-        print(json.dumps(json.loads(response), indent=2))
+        alice = login_response["user"]
+        alice_id = alice["user_id"]
 
-        response = await websocket.recv()
-        print("\nUser status:")
-        print(json.dumps(json.loads(response), indent=2))
+        # --------------------------------------------------
+        # 3. Initial user list and status
+        # --------------------------------------------------
+        await receive_json(
+            websocket,
+            "User list"
+        )
 
-        await websocket.send(json.dumps({
-            "type": "get_users"
-        }))
+        await receive_json(
+            websocket,
+            "User status"
+        )
 
-        response = await websocket.recv()
-        print("\nGet users response:")
-        print(json.dumps(json.loads(response), indent=2))
+        # --------------------------------------------------
+        # 4. Get users
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "get_users"
+            })
+        )
 
-        await websocket.send(json.dumps({
-            "type": "create_conversation",
-            "name": "Alice and Bob",
-            "participant_ids": [1, 2]
-        }))
+        await receive_json(
+            websocket,
+            "Get users response"
+        )
 
-        response = await websocket.recv()
-        create_response = json.loads(response)
+        # --------------------------------------------------
+        # 5. Create conversation with Bob
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "create_conversation",
+                "name": "Alice and Bob",
+                "participant_ids": [1, 2]
+            })
+        )
 
-        print("\nCreate conversation response:")
-        print(json.dumps(create_response, indent=2))
+        create_response = await receive_json(
+            websocket,
+            "Create conversation response"
+        )
 
-        conversation_id = create_response["conversation"]["conversation_id"]
+        if not create_response.get("success"):
+            print("\nConversation creation failed.")
+            return
 
-        print(f"\nUsing conversation ID: {conversation_id}")
+        conversation = create_response["conversation"]
+        conversation_id = conversation["conversation_id"]
 
-        await websocket.send(json.dumps({
-            "type": "send_message",
-            "conversation_id": conversation_id,
-            "content": "Hello Bob!"
-        }))
+        print(
+            f"\nUsing conversation ID: {conversation_id}"
+        )
 
-        response = await websocket.recv()
+        # --------------------------------------------------
+        # 6. Send message
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "send_message",
+                "conversation_id": conversation_id,
+                "content": "Hello Bob!"
+            })
+        )
 
-        print("\nSend message response:")
-        print(json.dumps(json.loads(response), indent=2))
+        # The server broadcasts the new message to
+        # all connected participants, including Alice.
+        await receive_json(
+            websocket,
+            "New message received"
+        )
 
-        # GET MESSAGE HISTORY
-        await websocket.send(json.dumps({
-            "type": "get_messages",
-            "conversation_id": conversation_id
-        }))
+        # --------------------------------------------------
+        # 7. Get message history
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "get_messages",
+                "conversation_id": conversation_id
+            })
+        )
 
-        response = await websocket.recv()
+        await receive_json(
+            websocket,
+            "Message history"
+        )
 
-        print("\nMessage history:")
-        print(json.dumps(json.loads(response), indent=2))
-
+        # --------------------------------------------------
+        # 8. Keep Alice connected
+        # --------------------------------------------------
         print("\nAlice is connected.")
         print("Waiting for messages...")
 
         try:
-            async for message in websocket:
+            while True:
+                response = await websocket.recv()
+
                 print("\nReceived:")
-                print(json.dumps(json.loads(message), indent=2))
+                print(
+                    json.dumps(
+                        json.loads(response),
+                        indent=2
+                    )
+                )
 
         except websockets.exceptions.ConnectionClosed:
-            print("Disconnected from server.")
+            print("\nAlice connection closed.")
 
 
-asyncio.run(test())
+if __name__ == "__main__":
+    asyncio.run(test())

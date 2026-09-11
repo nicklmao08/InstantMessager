@@ -22,6 +22,7 @@ MESSAGES_FILE = os.path.join(BASE_DIR, "messages.json")
 # }
 users = {}
 
+
 # Registered users:
 # {
 #     user_id: {
@@ -32,6 +33,7 @@ users = {}
 # }
 registered_users = {}
 
+
 # Conversations:
 # {
 #     conversation_id: {
@@ -41,6 +43,7 @@ registered_users = {}
 #     }
 # }
 conversations = {}
+
 
 next_user_id = 1
 next_conversation_id = 1
@@ -89,6 +92,20 @@ def save_message(
     global next_message_id
 
     messages = load_messages()
+
+    # Continue from the highest existing message ID.
+    if messages:
+        existing_ids = [
+            message.get("message_id")
+            for message in messages
+            if isinstance(message.get("message_id"), int)
+        ]
+
+        if existing_ids:
+            next_message_id = max(
+                next_message_id,
+                max(existing_ids) + 1
+            )
 
     message = {
         "message_id": next_message_id,
@@ -149,7 +166,7 @@ async def send_user_status(user_id, online):
 
     disconnected_users = []
 
-    for connected_user_id, user_data in users.items():
+    for connected_user_id, user_data in list(users.items()):
         try:
             await send_json(
                 user_data["websocket"],
@@ -175,7 +192,7 @@ async def send_user_list():
 
     disconnected_users = []
 
-    for user_id, user_data in users.items():
+    for user_id, user_data in list(users.items()):
         try:
             await send_json(
                 user_data["websocket"],
@@ -245,6 +262,7 @@ async def handle_login(websocket, data):
     existing_user = get_user_by_username(username)
 
     if existing_user is not None:
+
         if existing_user["online"]:
             await send_json(
                 websocket,
@@ -257,7 +275,6 @@ async def handle_login(websocket, data):
             return None
 
         user_id = existing_user["user_id"]
-
         registered_users[user_id]["online"] = True
 
     else:
@@ -421,7 +438,6 @@ async def handle_create_conversation(
     }
 
     conversations[next_conversation_id] = conversation
-
     next_conversation_id += 1
 
     await send_json(
@@ -576,6 +592,8 @@ async def handle_send_message(
         **message
     }
 
+    disconnected_users = []
+
     for participant_id in conversation["participants"]:
 
         participant = users.get(participant_id)
@@ -590,7 +608,10 @@ async def handle_send_message(
             )
 
         except websockets.exceptions.ConnectionClosed:
-            users.pop(participant_id, None)
+            disconnected_users.append(participant_id)
+
+    for participant_id in disconnected_users:
+        users.pop(participant_id, None)
 
     print(
         f"{user['username']} sent a message "
@@ -612,7 +633,6 @@ async def handle_logout(user_id):
     username = user["username"]
 
     users.pop(user_id, None)
-
     user["online"] = False
 
     print(
@@ -650,23 +670,19 @@ async def handle_client(websocket):
                 data = json.loads(raw_message)
 
             except json.JSONDecodeError:
-
                 await send_error(
                     websocket,
                     "Invalid JSON.",
                     "INVALID_JSON"
                 )
-
                 continue
 
             if not isinstance(data, dict):
-
                 await send_error(
                     websocket,
                     "Message must be a JSON object.",
                     "INVALID_MESSAGE"
                 )
-
                 continue
 
             message_type = data.get("type")
@@ -674,13 +690,11 @@ async def handle_client(websocket):
             if message_type == "login":
 
                 if user_id is not None:
-
                     await send_error(
                         websocket,
                         "You are already logged in.",
                         "ALREADY_AUTHENTICATED"
                     )
-
                     continue
 
                 user_id = await handle_login(
@@ -726,6 +740,11 @@ async def handle_client(websocket):
                     data
                 )
 
+            elif message_type == "logout":
+
+                await handle_logout(user_id)
+                user_id = None
+
             else:
 
                 await send_error(
@@ -747,7 +766,6 @@ async def handle_client(websocket):
             if user is not None:
 
                 user["online"] = False
-
                 users.pop(user_id, None)
 
                 print(
@@ -774,7 +792,6 @@ async def main():
         HOST,
         PORT
     ):
-
         await asyncio.Future()
 
 
