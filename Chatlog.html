@@ -4,10 +4,57 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ChatLog</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=send" />
         <link rel="stylesheet" href="style.css">
-        <script src="Main.js"></script>
     </head>
     <body>
-        <h1>Peekaboo blom jadi </h1>
-    </body>
+        <div class="screen">
+                <div class="sidebar">
+
+                    <div class="logo">
+                        <h2><span class="logo-img"><img src="Images/ImesgU.png" alt="Logo" class="logo-img"> </span></h2>
+                        <h3>Contacts</h3>
+                        <div id="onlineUsers"></div>
+                    
+                </div>
+
+        </div>
+
+            <div class="chat">
+
+                <div class="chathead chatborder">
+                    <img src="Images/user.png" class="contactIcon">
+                    <h3 id="contactName">Select a contact</h3>
+                </div>
+
+
+                <div id="messages" class="messages">
+
+                </div>
+
+
+                <div class="message-input">
+
+                <input
+                    type="text"
+                    id="messageInput"
+                    class="type"
+                    placeholder="Type a message..."
+                >
+
+                 <button onclick="sendMessage()">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="chat.js"></script>
+
+</body>
+
 </html>
