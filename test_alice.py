@@ -29,12 +29,12 @@ async def test():
         )
 
         # --------------------------------------------------
-        # 2. Login as Bob
+        # 2. Login as Alice
         # --------------------------------------------------
         await websocket.send(
             json.dumps({
                 "type": "login",
-                "username": "Bob"
+                "username": "Alice"
             })
         )
 
@@ -44,8 +44,11 @@ async def test():
         )
 
         if not login_response.get("success"):
-            print("\nBob login failed.")
+            print("\nAlice login failed.")
             return
+
+        alice = login_response["user"]
+        alice_id = alice["user_id"]
 
         # --------------------------------------------------
         # 3. Initial user list and status
@@ -75,27 +78,85 @@ async def test():
         )
 
         # --------------------------------------------------
-        # 5. Keep Bob connected
+        # 5. Create conversation with Bob
         # --------------------------------------------------
-        print("\nBob is connected.")
+        await websocket.send(
+            json.dumps({
+                "type": "create_conversation",
+                "name": "Alice and Bob",
+                "participant_ids": [1, 2]
+            })
+        )
+
+        create_response = await receive_json(
+            websocket,
+            "Create conversation response"
+        )
+
+        if not create_response.get("success"):
+            print("\nConversation creation failed.")
+            return
+
+        conversation = create_response["conversation"]
+        conversation_id = conversation["conversation_id"]
+
+        print(
+            f"\nUsing conversation ID: {conversation_id}"
+        )
+
+        # --------------------------------------------------
+        # 6. Send message
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "send_message",
+                "conversation_id": conversation_id,
+                "content": "Hello Bob!"
+            })
+        )
+
+        # The server broadcasts the new message to
+        # all connected participants, including Alice.
+        await receive_json(
+            websocket,
+            "New message received"
+        )
+
+        # --------------------------------------------------
+        # 7. Get message history
+        # --------------------------------------------------
+        await websocket.send(
+            json.dumps({
+                "type": "get_messages",
+                "conversation_id": conversation_id
+            })
+        )
+
+        await receive_json(
+            websocket,
+            "Message history"
+        )
+
+        # --------------------------------------------------
+        # 8. Keep Alice connected
+        # --------------------------------------------------
+        print("\nAlice is connected.")
         print("Waiting for messages...")
 
         try:
             while True:
                 response = await websocket.recv()
 
-                message = json.loads(response)
-
                 print("\nReceived:")
                 print(
                     json.dumps(
-                        message,
+                        json.loads(response),
                         indent=2
                     )
                 )
 
         except websockets.exceptions.ConnectionClosed:
-            print("\nBob connection closed.")
+            print("\nAlice connection closed.")
 
 
 if __name__ == "__main__":
