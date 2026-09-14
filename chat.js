@@ -1,43 +1,157 @@
-let currentcontact=null;
+const currentUsername = sessionStorage.getItem("username");
+let currentContact = null;
+let users = [];
+let contacts =[];
+let conversations = {};
 
-let conversations={
-    Mom:[{
-        text:"message",
-        type:"received"
-    }
-    ],
-    Dad:[{
-        text:"message",
-        type:"received"
-    }]
+/* Up users */
+function updateUsers(newUsers) {
+
+    users = newUsers.filter(function(user) {
+        return user.username !== currentUsername;
+    });
 }
+function addContact() {
 
-const username = sessionStorage.getItem("username");
-const socket = new WebSocket("ws://10.176.31.71:8765");
+    const input =
+        document.getElementById("contactUsername");
 
-socket.onopen = function() {
-    socket.send(JSON.stringify({
-        type: "login",
-        username: username
-    }));
-};
+    const username =
+        input.value.trim();
 
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
+    const error =
+        document.getElementById("contactError");
 
-    if (data.type === "message") {
-        if (!conversations[data.from]) {
-            conversations[data.from] = [];
-        }
 
-        conversations[data.from].push({
-            text: data.content,
-            type: "received"
+    // Empty input
+    if (username === "") {
+        error.textContent = "Enter a username";
+        return;
+    }
+
+
+    // Cannot add yourself
+    if (username === currentUsername) {
+        error.textContent = "You cannot add yourself";
+        return;
+    }
+
+
+    // Find user from users list
+    const foundUser =
+        users.find(function(user) {
+            return user.username === username;
         });
 
-        if (currentContact === data.from) {
-            displayMessages();
+
+    // Username doesn't exist
+    if (!foundUser) {
+        error.textContent = "User not found";
+        return;
+    }
+
+
+    // Check if already added
+    const alreadyAdded =
+        contacts.some(function(contact) {
+            return contact.username === username;
+        });
+
+
+    if (alreadyAdded) {
+        error.textContent = "User already added";
+        return;
+    }
+
+
+    // Add contact
+    contacts.push(foundUser);
+
+    error.textContent = "";
+
+    input.value = "";
+
+    renderContacts();
+}
+
+/* Display users */
+function renderContacts() {
+
+    const contactsDiv =
+        document.getElementById("contacts");
+
+    contactsDiv.innerHTML = "";
+
+
+    contacts.forEach(function(contact) {
+
+        const contactDiv =
+            document.createElement("div");
+
+        contactDiv.classList.add("contact");
+
+
+        contactDiv.addEventListener(
+            "click",
+            function() {
+                openUserChat(contact.username);
+            }
+        );
+
+
+        const icon =
+            document.createElement("img");
+
+        icon.src = "Images/user.png";
+
+        icon.classList.add("contactIcon");
+
+
+        const name =
+            document.createElement("span");
+
+        name.textContent =
+            contact.username;
+
+
+        const status =
+            document.createElement("span");
+
+        status.classList.add("status-dot");
+
+
+        if (contact.status === "online") {
+
+            status.classList.add(
+                "status-online"
+            );
+
         }
+        else {
+
+            status.classList.add(
+                "status-offline"
+            );
+
+        }
+
+
+        contactDiv.appendChild(icon);
+
+        contactDiv.appendChild(name);
+
+        contactDiv.appendChild(status);
+
+        contactsDiv.appendChild(contactDiv);
+    });
+}
+
+function openUserChat(username) {
+    if (!conversations[username]) {
+        conversations[username] = {
+            members: [currentUsername, username],
+            messages: []
+        };
     }
 };
 
@@ -107,3 +221,24 @@ function displayMessages() {
         );
     });
 }
+
+
+/* Rec msg */
+function receiveMessage(conversationName, sender, text) {
+    if (!conversations[conversationName]) {
+
+        conversations[conversationName] = {
+            members: [currentUsername, sender],
+            messages: []
+        };
+    }
+    conversations[conversationName].messages.push({
+        sender: sender,
+        text: text,
+        type: "received"
+    });
+    if (currentContact === conversationName) {
+        displayMessages();
+    }
+}
+
