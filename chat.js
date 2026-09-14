@@ -153,18 +153,20 @@ function openUserChat(username) {
             messages: []
         };
     }
-    openChat(username);
-}
+};
 
+/*click contact  */
 function openChat(contactName) {
+
     currentContact = contactName;
+
     document.getElementById("contactName").textContent =
         contactName;
+
     displayMessages();
 }
 
-
-/* Send mesg */
+/*send Message*/
 function sendMessage() {
     const input =
         document.getElementById("messageInput");
@@ -177,18 +179,20 @@ function sendMessage() {
     if (message === "") {
         return;
     }
-    conversations[currentContact].messages.push({
-        sender: currentUsername,
+    conversations[currentContact].push({
         text: message,
         type: "sent"
     });
 
+    socket.send(JSON.stringify({
+        type: "send_message",
+        to: currentContact,
+        content: message
+    }));
+
     input.value = "";
     displayMessages();
 }
-
-
-/* Press Enter */
 document
     .getElementById("messageInput")
     .addEventListener("keydown", function(event) {
@@ -197,18 +201,14 @@ document
         }
     });
 
-
-/* Disp mesg */
+/*Display message */
 function displayMessages() {
     const messagesDiv =
         document.getElementById("messages");
     messagesDiv.innerHTML = "";
-    if (currentContact === null) {
-        return;
-    }
     const messages =
-        conversations[currentContact].messages;
-    messages.forEach(function(message) {
+        conversations[currentContact];
+    messages.forEach(message => {
         const messageElement =
             document.createElement("div");
         messageElement.textContent =
