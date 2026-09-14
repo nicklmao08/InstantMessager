@@ -29,12 +29,12 @@ async def test():
         )
 
         # --------------------------------------------------
-        # 2. Login as Bob
+        # 2. Login as Dad
         # --------------------------------------------------
         await websocket.send(
             json.dumps({
                 "type": "login",
-                "username": "Bob"
+                "username": "Dad"
             })
         )
 
@@ -44,8 +44,13 @@ async def test():
         )
 
         if not login_response.get("success"):
-            print("\nBob login failed.")
+            print("\nDad login failed.")
             return
+
+        dad = login_response["user"]
+        dad_id = dad["user_id"]
+
+        print(f"\nDad user ID: {dad_id}")
 
         # --------------------------------------------------
         # 3. Initial user list and status
@@ -75,10 +80,35 @@ async def test():
         )
 
         # --------------------------------------------------
-        # 5. Keep Bob connected
+        # 5. Get conversations
         # --------------------------------------------------
-        print("\nBob is connected.")
-        print("Waiting for messages...")
+        await websocket.send(
+            json.dumps({
+                "type": "get_conversations"
+            })
+        )
+
+        conversation_response = await receive_json(
+            websocket,
+            "Conversation list"
+        )
+
+        conversations = conversation_response.get(
+            "conversations",
+            []
+        )
+
+        if conversations:
+            print("\nDad can see these conversations:")
+            print(json.dumps(conversations, indent=2))
+        else:
+            print("\nNo conversations found for Dad.")
+
+        # --------------------------------------------------
+        # 6. Keep Dad connected
+        # --------------------------------------------------
+        print("\nDad is connected.")
+        print("Waiting for group messages...")
 
         try:
             while True:
@@ -87,15 +117,10 @@ async def test():
                 message = json.loads(response)
 
                 print("\nReceived:")
-                print(
-                    json.dumps(
-                        message,
-                        indent=2
-                    )
-                )
+                print(json.dumps(message, indent=2))
 
         except websockets.exceptions.ConnectionClosed:
-            print("\nBob connection closed.")
+            print("\nDad connection closed.")
 
 
 if __name__ == "__main__":

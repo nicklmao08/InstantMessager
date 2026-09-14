@@ -2,9 +2,9 @@
   {
     "message_id": 1,
     "conversation_id": 1,
-    "sender_id": 2,
-    "sender_username": "Alice",
-    "content": "Hello Bob!",
-    "timestamp": "2026-09-11T13:36:12.709288"
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T14:37:37.357754"
   }
 ]

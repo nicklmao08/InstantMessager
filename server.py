@@ -39,7 +39,7 @@ registered_users = {}
 #     conversation_id: {
 #         "conversation_id": conversation_id,
 #         "name": name,
-#         "participants": [user_id, user_id]
+#         "participants": [user_id, ...]
 #     }
 # }
 conversations = {}
