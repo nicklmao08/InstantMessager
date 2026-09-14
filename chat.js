@@ -1,30 +1,8 @@
 const currentUsername = sessionStorage.getItem("username");
 let currentContact = null;
 let users = [];
-
-let conversations = {
-    Mom: {
-        members: [currentUsername, "Mom"],
-        messages: [
-            {
-                sender: "Mom",
-                text: "message",
-                type: "received"
-            }
-        ]
-    },
-
-    Dad: {
-        members: [currentUsername, "Dad"],
-        messages: [
-            {
-                sender: "Dad",
-                text: "udh kirim uang",
-                type: "received"
-            }
-        ]
-    }
-};
+let contacts =[];
+let conversations = {};
 
 /* Up users */
 function updateUsers(newUsers) {
@@ -32,46 +10,139 @@ function updateUsers(newUsers) {
     users = newUsers.filter(function(user) {
         return user.username !== currentUsername;
     });
+}
+function addContact() {
 
-    renderUsers();
+    const input =
+        document.getElementById("contactUsername");
+
+    const username =
+        input.value.trim();
+
+    const error =
+        document.getElementById("contactError");
+
+
+    // Empty input
+    if (username === "") {
+        error.textContent = "Enter a username";
+        return;
+    }
+
+
+    // Cannot add yourself
+    if (username === currentUsername) {
+        error.textContent = "You cannot add yourself";
+        return;
+    }
+
+
+    // Find user from users list
+    const foundUser =
+        users.find(function(user) {
+            return user.username === username;
+        });
+
+
+    // Username doesn't exist
+    if (!foundUser) {
+        error.textContent = "User not found";
+        return;
+    }
+
+
+    // Check if already added
+    const alreadyAdded =
+        contacts.some(function(contact) {
+            return contact.username === username;
+        });
+
+
+    if (alreadyAdded) {
+        error.textContent = "User already added";
+        return;
+    }
+
+
+    // Add contact
+    contacts.push(foundUser);
+
+    error.textContent = "";
+
+    input.value = "";
+
+    renderContacts();
 }
 
 /* Display users */
-function renderUsers() {
+function renderContacts() {
 
-    const usersDiv =
-        document.getElementById("onlineUsers");
-    usersDiv.innerHTML = "";
-    users.forEach(function(user) {
-        const userDiv =
+    const contactsDiv =
+        document.getElementById("contacts");
+
+    contactsDiv.innerHTML = "";
+
+
+    contacts.forEach(function(contact) {
+
+        const contactDiv =
             document.createElement("div");
-        userDiv.classList.add("contact");
 
-        userDiv.addEventListener("click", function() {
-            openUserChat(user.username);
-        });
-        const userIcon =
+        contactDiv.classList.add("contact");
+
+
+        contactDiv.addEventListener(
+            "click",
+            function() {
+                openUserChat(contact.username);
+            }
+        );
+
+
+        const icon =
             document.createElement("img");
-        userIcon.src = "Images/user.png";
-        userIcon.classList.add("contactIcon");
 
-        const username =
+        icon.src = "Images/user.png";
+
+        icon.classList.add("contactIcon");
+
+
+        const name =
             document.createElement("span");
-        username.textContent = user.username;
-        // Status
+
+        name.textContent =
+            contact.username;
+
+
         const status =
             document.createElement("span");
+
         status.classList.add("status-dot");
-        if (user.status === "online") {
-            status.classList.add("status-online");
+
+
+        if (contact.status === "online") {
+
+            status.classList.add(
+                "status-online"
+            );
+
         }
         else {
-            status.classList.add("status-offline");
+
+            status.classList.add(
+                "status-offline"
+            );
+
         }
-        userDiv.appendChild(userIcon);
-        userDiv.appendChild(username);
-        userDiv.appendChild(status);
-        usersDiv.appendChild(userDiv);
+
+
+        contactDiv.appendChild(icon);
+
+        contactDiv.appendChild(name);
+
+        contactDiv.appendChild(status);
+
+        contactsDiv.appendChild(contactDiv);
     });
 }
 
@@ -82,18 +153,20 @@ function openUserChat(username) {
             messages: []
         };
     }
-    openChat(username);
-}
+};
 
+/*click contact  */
 function openChat(contactName) {
+
     currentContact = contactName;
+
     document.getElementById("contactName").textContent =
         contactName;
+
     displayMessages();
 }
 
-
-/* Send mesg */
+/*send Message*/
 function sendMessage() {
     const input =
         document.getElementById("messageInput");
@@ -106,18 +179,20 @@ function sendMessage() {
     if (message === "") {
         return;
     }
-    conversations[currentContact].messages.push({
-        sender: currentUsername,
+    conversations[currentContact].push({
         text: message,
         type: "sent"
     });
 
+    socket.send(JSON.stringify({
+        type: "send_message",
+        to: currentContact,
+        content: message
+    }));
+
     input.value = "";
     displayMessages();
 }
-
-
-/* Press Enter */
 document
     .getElementById("messageInput")
     .addEventListener("keydown", function(event) {
@@ -126,18 +201,14 @@ document
         }
     });
 
-
-/* Disp mesg */
+/*Display message */
 function displayMessages() {
     const messagesDiv =
         document.getElementById("messages");
     messagesDiv.innerHTML = "";
-    if (currentContact === null) {
-        return;
-    }
     const messages =
-        conversations[currentContact].messages;
-    messages.forEach(function(message) {
+        conversations[currentContact];
+    messages.forEach(message => {
         const messageElement =
             document.createElement("div");
         messageElement.textContent =
@@ -171,31 +242,3 @@ function receiveMessage(conversationName, sender, text) {
     }
 }
 
-
-/*  testing */
-updateUsers([
-    {
-        username: currentUsername,
-        status: "online"
-    },
-
-    {
-        username: "Mom",
-        status: "online"
-    },
-
-    {
-        username: "Dad",
-        status: "offline"
-    },
-
-    {
-        username: "Bob",
-        status: "online"
-    },
-
-    {
-        username: "Nick",
-        status: "offline"
-    }
-]);
