@@ -22,7 +22,6 @@ function addContact() {
     const error =
         document.getElementById("contactError");
 
-
     // Empty input
     if (username === "") {
         error.textContent = "Enter a username";
@@ -134,14 +133,9 @@ function renderContacts() {
             );
 
         }
-
-
         contactDiv.appendChild(icon);
-
         contactDiv.appendChild(name);
-
         contactDiv.appendChild(status);
-
         contactsDiv.appendChild(contactDiv);
     });
 }
@@ -156,10 +150,19 @@ function openUserChat(username) {
     openChat(username);
 }
 
-function openChat(contactName) {
-    currentContact = contactName;
+function openChat(conversationId) {
+
+    currentContact =
+        conversationId;
+
+    const conversation =
+        conversations[conversationId];
+
+
     document.getElementById("contactName").textContent =
-        contactName;
+        conversation.name || conversationId;
+
+
     displayMessages();
 }
 
@@ -193,8 +196,8 @@ document
     .getElementById("messageInput")
     .addEventListener("keydown", function(event) {
         if (event.key === "Enter") {
-            sendMessage();
-        }
+            icon.textContent="👥";
+        } 
     });
 
 
@@ -242,3 +245,257 @@ function receiveMessage(conversationName, sender, text) {
     }
 }
 
+function showGroupForm() {
+
+    const form =
+        document.getElementById("groupForm");
+
+    form.style.display = "block";
+
+    renderGroupContacts();
+}
+
+function renderGroupContacts() {
+
+    const container =
+        document.getElementById("groupContacts");
+
+    container.innerHTML = "";
+
+
+    contacts.forEach(function(contact) {
+
+        const row =
+            document.createElement("div");
+
+
+        const checkbox =
+            document.createElement("input");
+
+        checkbox.type = "checkbox";
+        checkbox.value = contact.username;
+        checkbox.classList.add("group-member");
+
+
+        const label =
+            document.createElement("span");
+
+        label.textContent =
+            contact.username;
+
+
+        row.appendChild(checkbox);
+        row.appendChild(label);
+
+        container.appendChild(row);
+    });
+}
+function renderGroupContacts() {
+
+    const container =
+        document.getElementById("groupContacts");
+
+    container.innerHTML = "";
+
+
+    contacts.forEach(function(contact) {
+
+        const row =
+            document.createElement("div");
+
+
+        const checkbox =
+            document.createElement("input");
+
+        checkbox.type = "checkbox";
+        checkbox.value = contact.username;
+        checkbox.classList.add("group-member");
+
+
+        const label =
+            document.createElement("span");
+
+        label.textContent =
+            contact.username;
+
+
+        row.appendChild(checkbox);
+        row.appendChild(label);
+
+        container.appendChild(row);
+    });
+}
+function createGroup() {
+
+    const groupName =
+        document.getElementById("groupName").value.trim();
+
+    const error =
+        document.getElementById("groupError");
+
+
+    if (groupName === "") {
+        error.textContent =
+            "Enter a group name";
+        return;
+    }
+
+
+    const selected =
+        document.querySelectorAll(
+            ".group-member:checked"
+        );
+
+
+    const selectedMembers = [];
+
+    selected.forEach(function(checkbox) {
+        selectedMembers.push(checkbox.value);
+    });
+
+
+    if (selectedMembers.length < 2) {
+
+        error.textContent =
+            "Select at least 2 contacts";
+
+        return;
+    }
+
+
+    const conversationId =
+        "group_" + groupName;
+
+
+    if (conversations[conversationId]) {
+
+        error.textContent =
+            "Group already exists";
+
+        return;
+    }
+
+
+    conversations[conversationId] = {
+
+        name: groupName,
+
+        type: "group",
+
+        members: [
+            currentUsername,
+            ...selectedMembers
+        ],
+
+        messages: []
+    };
+
+
+    error.textContent = "";
+
+    document.getElementById("groupName").value = "";
+
+    document.getElementById("groupForm").style.display =
+        "none";
+
+
+    renderConversations();
+
+    openChat(conversationId);
+}
+function renderConversations() {
+
+    const conversationDiv =
+        document.getElementById("conversationList");
+
+    conversationDiv.innerHTML = "";
+
+
+    Object.keys(conversations).forEach(function(id) {
+
+        const conversation =
+            conversations[id];
+
+
+        const conversationRow =
+            document.createElement("div");
+
+        conversationRow.classList.add("contact");
+
+
+        conversationRow.addEventListener(
+            "click",
+            function() {
+                openChat(id);
+            }
+        );
+
+
+        const icon =
+            document.createElement("span");
+
+        if (conversation.type === "group") {
+            icon.textContent = "👥";
+        }
+        else {
+            icon.textContent = "💬";
+        }
+
+
+        const name =
+            document.createElement("span");
+
+        name.textContent =
+            conversation.name || id;
+
+
+        conversationRow.appendChild(icon);
+        conversationRow.appendChild(name);
+
+        conversationDiv.appendChild(
+            conversationRow
+        );
+    });
+}
+function openUserChat(username) {
+
+    if (!conversations[username]) {
+
+        conversations[username] = {
+
+            name: username,
+
+            type: "private",
+
+            members: [
+                currentUsername,
+                username
+            ],
+
+            messages: []
+        };
+
+        renderConversations();
+    }
+
+    openChat(username);
+}
+
+updateUsers([
+    {
+        username: "Alice",
+        status: "online"
+    },
+    {
+        username: "Nick",
+        status: "online"
+    },
+    {
+        username: "Mom",
+        status: "offline"
+    },
+    {
+        username: "Dad",
+        status: "online"
+    }
+]);
