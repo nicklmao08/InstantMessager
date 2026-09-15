@@ -178,16 +178,11 @@ function sendMessage() {
     if (message === "") {
         return;
     }
-    conversations[currentContact].push({
-        text: message,
-        type: "sent"
-    });
-
-    socket.send(JSON.stringify({
-        type: "send_message",
-        to: currentContact,
-        content: message
-    }));
+    conversations[currentContact].messages.push({
+    sender: currentUsername,
+    text: message,
+    type: "sent"
+});
 
     input.value = "";
     displayMessages();
@@ -195,26 +190,41 @@ function sendMessage() {
 document
     .getElementById("messageInput")
     .addEventListener("keydown", function(event) {
+
         if (event.key === "Enter") {
-            icon.textContent="👥";
-        } 
+            event.preventDefault();
+            sendMessage();
+        }
+
     });
 
 /*Display message */
 function displayMessages() {
+
     const messagesDiv =
         document.getElementById("messages");
+
     messagesDiv.innerHTML = "";
+
+    if (!currentContact || !conversations[currentContact]) {
+        return;
+    }
+
     const messages =
-        conversations[currentContact];
-    messages.forEach(message => {
+        conversations[currentContact].messages;
+
+    messages.forEach(function(message) {
+
         const messageElement =
             document.createElement("div");
+
         messageElement.textContent =
             message.text;
+
         messageElement.classList.add(
             message.type
         );
+
         messagesDiv.appendChild(
             messageElement
         );
