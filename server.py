@@ -11,6 +11,10 @@ PORT = int(os.environ.get("PORT", 8765))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_FILE = os.path.join(BASE_DIR, "messages.json")
+CONVERSATIONS_FILE = os.path.join(
+    BASE_DIR,
+    "conversations.json"
+)
 
 
 # Connected users:
@@ -42,6 +46,69 @@ registered_users = {}
 #         "participants": [user_id, ...]
 #     }
 # }
+
+def save_conversations():
+
+    with open(
+        CONVERSATIONS_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            list(conversations.values()),
+            file,
+            indent=2,
+            ensure_ascii=False
+        )
+
+def load_conversations():
+
+    global conversations
+    global next_conversation_id
+
+    if not os.path.exists(
+        CONVERSATIONS_FILE
+    ):
+        return
+
+    try:
+
+        with open(
+            CONVERSATIONS_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            data = json.load(file)
+
+        conversations.clear()
+
+        max_id = 0
+
+        for conversation in data:
+
+            conversation_id = (
+                conversation["conversation_id"]
+            )
+
+            conversations[
+                conversation_id
+            ] = conversation
+
+            max_id = max(
+                max_id,
+                conversation_id
+            )
+
+        next_conversation_id = max_id + 1
+
+    except Exception as e:
+
+        print(
+            "Failed loading conversations:",
+            e
+        )
 conversations = {}
 
 
@@ -419,6 +486,40 @@ async def handle_create_conversation(
         if participant_id not in cleaned_participants:
             cleaned_participants.append(participant_id)
 
+    # ==========================================
+    # CHECK FOR EXISTING CONVERSATION
+    # ==========================================
+
+    requested_participants = sorted(cleaned_participants)
+
+    for existing_conversation in conversations.values():
+
+        existing_participants = sorted(
+            existing_conversation["participants"]
+        )
+
+        if existing_participants == requested_participants:
+
+            print(
+                "Using existing conversation:",
+                existing_conversation["conversation_id"]
+            )
+
+            await send_json(
+                websocket,
+                {
+                    "type": "create_conversation_response",
+                    "success": True,
+                    "conversation": existing_conversation
+                }
+            )
+
+            return
+
+    # ==========================================
+    # CREATE NEW CONVERSATION
+    # ==========================================
+
     if isinstance(name, str):
         name = name.strip()
 
@@ -438,6 +539,7 @@ async def handle_create_conversation(
     }
 
     conversations[next_conversation_id] = conversation
+    save_conversations()
     next_conversation_id += 1
 
     await send_json(
@@ -787,6 +889,7 @@ async def main():
         f"Server running on ws://localhost:{PORT}"
     )
 
+    load_conversations()
     async with websockets.serve(
         handle_client,
         HOST,

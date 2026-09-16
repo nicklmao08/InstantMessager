@@ -1,8 +1,144 @@
 const currentUsername = sessionStorage.getItem("username");
+let currentUserId = null;
 let currentContact = null;
 let users = [];
-let contacts =[];
+
+let contacts =
+    JSON.parse(
+        localStorage.getItem(
+            "contacts_" + currentUsername
+        )
+    ) || [];
+
 let conversations = {};
+const socket = new WebSocket("ws://localhost:8765");
+
+socket.onopen = function () {
+
+    socket.send(JSON.stringify({
+        type: "login",
+        username: currentUsername
+    }));
+
+    socket.send(JSON.stringify({
+        type: "get_conversations"
+    }));
+
+};
+
+socket.onmessage = function(event) {
+
+    const data = JSON.parse(event.data);
+
+    console.log("Received:", data);
+
+    if (data.type === "user_list") {
+        updateUsers(data.users);
+        renderContacts();
+    }
+
+    if (data.type === "login_response") {
+
+        currentUserId =
+            data.user.user_id;
+
+        socket.send(JSON.stringify({
+            type: "get_users"
+        }));
+
+    }
+
+    if (data.type === "create_conversation_response") {
+
+        const conversation = data.conversation;
+
+        console.log(
+            "Backend returned:",
+            conversation
+        );
+
+        conversations[conversation.conversation_id] = {
+            ...conversation,
+            messages: []
+        };
+
+        renderConversations();
+
+        openChat(conversation.conversation_id);
+    }
+
+    if (data.type === "message_history") {
+
+        const conversation =
+            conversations[data.conversation_id];
+
+        conversation.messages = [];
+
+        data.messages.forEach(function(message) {
+
+            conversation.messages.push({
+
+                sender: message.sender_username,
+
+                text: message.content,
+
+                type:
+                    message.sender_username === currentUsername
+                    ? "sent"
+                    : "received"
+            });
+
+        });
+
+        displayMessages();
+    }
+
+    if (data.type === "new_message") {
+
+        const conversationId =
+            data.conversation_id;
+
+        if (!conversations[conversationId]) {
+            return;
+        }
+
+        conversations[conversationId].messages.push({
+
+            sender: data.sender_username,
+
+            text: data.content,
+
+            type:
+                data.sender_username === currentUsername
+                ? "sent"
+                : "received"
+        });
+
+        if (currentContact === conversationId) {
+            displayMessages();
+        }
+    }
+
+    if (data.type === "conversation_list") {
+
+        data.conversations.forEach(function(conversation) {
+
+            conversations[
+                conversation.conversation_id
+            ] = {
+
+                ...conversation,
+
+                messages: []
+
+            };
+
+        });
+
+        renderConversations();
+    }
+
+};
 
 /* Up users */
 function updateUsers(newUsers) {
@@ -52,6 +188,7 @@ function addContact() {
 
     // Check if already added
     const alreadyAdded =
+        console.log(contacts);
         contacts.some(function(contact) {
             return contact.username === username;
         });
@@ -65,6 +202,11 @@ function addContact() {
 
     // Add contact
     contacts.push(foundUser);
+    localStorage.setItem(
+        "contacts_" + currentUsername,
+        JSON.stringify(contacts)
+    );
+    console.log("CONTACT ADDED:", foundUser.username);
 
     error.textContent = "";
 
@@ -119,7 +261,7 @@ function renderContacts() {
         status.classList.add("status-dot");
 
 
-        if (contact.status === "online") {
+        if (contact.online){
 
             status.classList.add(
                 "status-online"
@@ -140,16 +282,18 @@ function renderContacts() {
     });
 }
 
-function openUserChat(username) {
-    if (!conversations[username]) {
-        conversations[username] = {
-            members: [currentUsername, username],
-            messages: []
-        };
-    }
-};
-
 function openChat(conversationId) {
+
+    console.log(
+        "openChat called with:",
+        conversationId,
+        typeof conversationId
+    );
+
+    socket.send(JSON.stringify({
+        type: "get_messages",
+        conversation_id: conversationId
+    }));
 
     currentContact =
         conversationId;
@@ -158,8 +302,34 @@ function openChat(conversationId) {
         conversations[conversationId];
 
 
-    document.getElementById("contactName").textContent =
+    let displayName =
         conversation.name || conversationId;
+
+    if (
+        conversation.participants &&
+        conversation.participants.length === 2
+    ) {
+
+        const otherUserId =
+            conversation.participants.find(
+                participantId =>
+                    participantId !== currentUserId
+            );
+
+        const otherUser =
+            users.find(
+                user =>
+                    user.user_id === otherUserId
+            );
+
+        if (otherUser) {
+            displayName =
+                otherUser.username;
+        }
+    }
+
+    document.getElementById("contactName").textContent =
+        displayName;
 
 
     displayMessages();
@@ -178,11 +348,15 @@ function sendMessage() {
     if (message === "") {
         return;
     }
-    conversations[currentContact].messages.push({
-    sender: currentUsername,
-    text: message,
-    type: "sent"
-});
+    socket.send(JSON.stringify({
+
+        type: "send_message",
+
+        conversation_id: currentContact,
+
+        content: message
+
+    }));
 
     input.value = "";
     displayMessages();
@@ -211,7 +385,7 @@ function displayMessages() {
     }
 
     const messages =
-        conversations[currentContact].messages;
+        conversations[currentContact].messages || [];
 
     messages.forEach(function(message) {
 
@@ -229,26 +403,6 @@ function displayMessages() {
             messageElement
         );
     });
-}
-
-
-/* Rec msg */
-function receiveMessage(conversationName, sender, text) {
-    if (!conversations[conversationName]) {
-
-        conversations[conversationName] = {
-            members: [currentUsername, sender],
-            messages: []
-        };
-    }
-    conversations[conversationName].messages.push({
-        sender: sender,
-        text: text,
-        type: "received"
-    });
-    if (currentContact === conversationName) {
-        displayMessages();
-    }
 }
 
 function showGroupForm() {
@@ -296,71 +450,49 @@ function renderGroupContacts() {
         container.appendChild(row);
     });
 }
-function renderGroupContacts() {
 
-    const container =
-        document.getElementById("groupContacts");
-
-    container.innerHTML = "";
-
-
-    contacts.forEach(function(contact) {
-
-        const row =
-            document.createElement("div");
-
-
-        const checkbox =
-            document.createElement("input");
-
-        checkbox.type = "checkbox";
-        checkbox.value = contact.username;
-        checkbox.classList.add("group-member");
-
-
-        const label =
-            document.createElement("span");
-
-        label.textContent =
-            contact.username;
-
-
-        row.appendChild(checkbox);
-        row.appendChild(label);
-
-        container.appendChild(row);
-    });
-}
 function createGroup() {
 
     const groupName =
-        document.getElementById("groupName").value.trim();
+        document.getElementById("groupName")
+            .value
+            .trim();
 
     const error =
         document.getElementById("groupError");
 
-
     if (groupName === "") {
+
         error.textContent =
             "Enter a group name";
+
         return;
     }
-
 
     const selected =
         document.querySelectorAll(
             ".group-member:checked"
         );
 
-
-    const selectedMembers = [];
+    const participantIds = [];
 
     selected.forEach(function(checkbox) {
-        selectedMembers.push(checkbox.value);
+
+        const contact =
+            contacts.find(
+                c =>
+                    c.username === checkbox.value
+            );
+
+        if (contact) {
+            participantIds.push(
+                contact.user_id
+            );
+        }
+
     });
 
-
-    if (selectedMembers.length < 2) {
+    if (participantIds.length < 2) {
 
         error.textContent =
             "Select at least 2 contacts";
@@ -368,47 +500,31 @@ function createGroup() {
         return;
     }
 
+    console.log(
+        "Creating group:",
+        groupName,
+        participantIds
+    );
 
-    const conversationId =
-        "group_" + groupName;
+    socket.send(JSON.stringify({
 
-
-    if (conversations[conversationId]) {
-
-        error.textContent =
-            "Group already exists";
-
-        return;
-    }
-
-
-    conversations[conversationId] = {
+        type: "create_conversation",
 
         name: groupName,
 
-        type: "group",
+        participant_ids: participantIds
 
-        members: [
-            currentUsername,
-            ...selectedMembers
-        ],
-
-        messages: []
-    };
-
+    }));
 
     error.textContent = "";
 
-    document.getElementById("groupName").value = "";
+    document.getElementById("groupName").value =
+        "";
 
     document.getElementById("groupForm").style.display =
         "none";
-
-
-    renderConversations();
-
-    openChat(conversationId);
 }
+
 function renderConversations() {
 
     const conversationDiv =
@@ -432,7 +548,7 @@ function renderConversations() {
         conversationRow.addEventListener(
             "click",
             function() {
-                openChat(id);
+                openChat(Number(id));
             }
         );
 
@@ -451,8 +567,34 @@ function renderConversations() {
         const name =
             document.createElement("span");
 
-        name.textContent =
+        let displayName =
             conversation.name || id;
+
+        if (
+            conversation.participants &&
+            conversation.participants.length === 2
+        ) {
+
+            const otherUserId =
+                conversation.participants.find(
+                    participantId =>
+                        participantId !== currentUserId
+                );
+
+            const otherUser =
+                users.find(
+                    user =>
+                        user.user_id === otherUserId
+                );
+
+            if (otherUser) {
+                displayName =
+                    otherUser.username;
+            }
+        }
+
+        name.textContent =
+            displayName;
 
 
         conversationRow.appendChild(icon);
@@ -464,44 +606,19 @@ function renderConversations() {
     });
 }
 function openUserChat(username) {
+    console.log("OPEN USER CHAT CALLED:", username);
 
-    if (!conversations[username]) {
+    const selectedUser =
+        users.find(
+            u => u.username === username
+        );
 
-        conversations[username] = {
-
-            name: username,
-
-            type: "private",
-
-            members: [
-                currentUsername,
-                username
-            ],
-
-            messages: []
-        };
-
-        renderConversations();
-    }
-
-    openChat(username);
+    socket.send(JSON.stringify({
+        type: "create_conversation",
+        participant_ids: [
+            selectedUser.user_id
+        ]
+    }));
 }
 
-updateUsers([
-    {
-        username: "Alice",
-        status: "online"
-    },
-    {
-        username: "Nick",
-        status: "online"
-    },
-    {
-        username: "Mom",
-        status: "offline"
-    },
-    {
-        username: "Dad",
-        status: "online"
-    }
-]);
+renderContacts();
