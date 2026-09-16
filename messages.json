@@ -1,10 +1,50 @@
 [
   {
-    "message_id": 1,
+    "message_id": 4,
+    "conversation_id": 7,
+    "sender_id": 2,
+    "sender_username": "b",
+    "content": "yo",
+    "timestamp": "2026-09-15T16:52:59.882559"
+  },
+  {
+    "message_id": 5,
+    "conversation_id": 11,
+    "sender_id": 1,
+    "sender_username": "a",
+    "content": "yo",
+    "timestamp": "2026-09-15T17:05:31.546872"
+  },
+  {
+    "message_id": 6,
     "conversation_id": 1,
+    "sender_id": 2,
+    "sender_username": "b",
+    "content": "hai",
+    "timestamp": "2026-09-15T17:08:30.834436"
+  },
+  {
+    "message_id": 7,
+    "conversation_id": 2,
     "sender_id": 3,
-    "sender_username": "Mom",
-    "content": "Hello Dad and Brother!",
-    "timestamp": "2026-09-14T14:37:37.357754"
+    "sender_username": "c",
+    "content": "oi",
+    "timestamp": "2026-09-15T17:09:04.426391"
+  },
+  {
+    "message_id": 8,
+    "conversation_id": 1,
+    "sender_id": 2,
+    "sender_username": "b",
+    "content": "maya hee",
+    "timestamp": "2026-09-16T09:35:43.843656"
+  },
+  {
+    "message_id": 9,
+    "conversation_id": 4,
+    "sender_id": 1,
+    "sender_username": "d",
+    "content": "yo",
+    "timestamp": "2026-09-16T10:03:27.325478"
   }
 ]
