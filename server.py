@@ -11,6 +11,7 @@ PORT = 8765
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_FILE = os.path.join(BASE_DIR, "messages.json")
+CONVERSATIONS_FILE = os.path.join(BASE_DIR, "conversations.json")
 
 
 # ============================================================
@@ -58,6 +59,36 @@ conversations = {}
 next_user_id = 1
 next_conversation_id = 1
 next_message_id = 1
+
+
+# ============================================================
+# CONVERSATION STORAGE
+# ============================================================
+
+def load_conversations():
+    """Load conversations from conversations.json."""
+    global conversations, next_conversation_id
+
+    if not os.path.exists(CONVERSATIONS_FILE):
+        return
+
+    try:
+        with open(CONVERSATIONS_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        if isinstance(data, dict):
+            conversations = {int(k): v for k, v in data.items()}
+            if conversations:
+                next_conversation_id = max(conversations.keys()) + 1
+
+    except (json.JSONDecodeError, OSError, ValueError):
+        conversations = {}
+
+
+def save_conversations():
+    """Save conversations to conversations.json."""
+    with open(CONVERSATIONS_FILE, "w", encoding="utf-8") as file:
+        json.dump(conversations, file, indent=4)
 
 
 # ============================================================
