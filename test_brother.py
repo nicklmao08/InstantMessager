@@ -1,127 +1,629 @@
 import asyncio
 import json
-
 import websockets
 
 
-SERVER_URI = "ws://localhost:8765"
+SERVER_URL = "ws://localhost:8765"
+USERNAME = "Brother"
+
+OTHER_USERS = [
+    "Mom",
+    "Dad"
+]
 
 
-async def receive_json(websocket, label):
-    """Receive and print one JSON message."""
-    response = json.loads(await websocket.recv())
+async def receive_until(
+    websocket,
+    expected_type
+):
 
-    print(f"\n{label}:")
-    print(json.dumps(response, indent=2))
+    while True:
 
-    return response
+        response = await websocket.recv()
 
-
-async def test():
-    async with websockets.connect(SERVER_URI) as websocket:
-
-        # --------------------------------------------------
-        # 1. Connection
-        # --------------------------------------------------
-        await receive_json(
-            websocket,
-            "Connected response"
+        data = json.loads(
+            response
         )
 
-        # --------------------------------------------------
-        # 2. Login as Brother
-        # --------------------------------------------------
-        await websocket.send(
-            json.dumps({
-                "type": "login",
-                "username": "Brother"
-            })
+        print("\nReceived:")
+        print(
+            json.dumps(
+                data,
+                indent=2
+            )
         )
 
-        login_response = await receive_json(
-            websocket,
-            "Login response"
-        )
+        if data.get("type") == expected_type:
+            return data
 
-        if not login_response.get("success"):
-            print("\nBrother login failed.")
-            return
 
-        brother = login_response["user"]
-        brother_id = brother["user_id"]
+async def wait_for_users(
+    websocket,
+    required_names
+):
 
-        print(f"\nBrother user ID: {brother_id}")
+    while True:
 
-        # --------------------------------------------------
-        # 3. Initial user list and status
-        # --------------------------------------------------
-        await receive_json(
-            websocket,
-            "User list"
-        )
-
-        await receive_json(
-            websocket,
-            "User status"
-        )
-
-        # --------------------------------------------------
-        # 4. Get users
-        # --------------------------------------------------
         await websocket.send(
             json.dumps({
                 "type": "get_users"
             })
         )
 
-        await receive_json(
+        data = await receive_until(
             websocket,
-            "Get users response"
+            "user_list"
         )
 
-        # --------------------------------------------------
-        # 5. Get conversations
-        # --------------------------------------------------
-        await websocket.send(
-            json.dumps({
-                "type": "get_conversations"
-            })
-        )
-
-        conversation_response = await receive_json(
-            websocket,
-            "Conversation list"
-        )
-
-        conversations = conversation_response.get(
-            "conversations",
+        users = data.get(
+            "users",
             []
         )
 
-        if conversations:
-            print("\nBrother can see these conversations:")
-            print(json.dumps(conversations, indent=2))
-        else:
-            print("\nNo conversations found for Brother.")
+        usernames = {
+            user.get("username")
+            for user in users
+        }
 
-        # --------------------------------------------------
-        # 6. Keep Brother connected
-        # --------------------------------------------------
-        print("\nBrother is connected.")
-        print("Waiting for group messages...")
+        if all(
+            name in usernames
+            for name in required_names
+        ):
 
-        try:
-            while True:
-                response = await websocket.recv()
+            return users
 
-                message = json.loads(response)
+        print(
+            "\nWaiting for Mom and Dad..."
+        )
 
-                print("\nReceived:")
-                print(json.dumps(message, indent=2))
+        await asyncio.sleep(1)
 
-        except websockets.exceptions.ConnectionClosed:
-            print("\nBrother connection closed.")
+
+def build_user_map(users):
+
+    result = {}
+
+    for user in users:
+
+        username = user.get(
+            "username"
+        )
+
+        user_id = user.get(
+            "user_id"
+        )
+
+        if username and user_id is not None:
+
+            result[username] = user_id
+
+    return result
+
+
+def find_conversation(
+    conversations,
+    participant_ids
+):
+
+    wanted = set(
+        participant_ids
+    )
+
+    for conversation in conversations:
+
+        existing = set(
+            conversation.get(
+                "participants",
+                []
+            )
+        )
+
+        if existing == wanted:
+            return conversation
+
+    return None
+
+
+async def get_conversations(
+    websocket
+):
+
+    await websocket.send(
+        json.dumps({
+            "type": "get_conversations"
+        })
+    )
+
+    data = await receive_until(
+        websocket,
+        "conversation_list"
+    )
+
+    return data.get(
+        "conversations",
+        []
+    )
+
+
+async def get_or_create_conversation(
+    websocket,
+    conversations,
+    name,
+    participant_ids
+):
+
+    conversation = find_conversation(
+        conversations,
+        participant_ids
+    )
+
+    if conversation is not None:
+
+        print(
+            f"\nUsing existing conversation "
+            f"{conversation['conversation_id']}: "
+            f"{conversation['name']}"
+        )
+
+        return conversation
+
+    await websocket.send(
+        json.dumps({
+            "type": "create_conversation",
+            "name": name,
+            "participant_ids": participant_ids
+        })
+    )
+
+    response = await receive_until(
+        websocket,
+        "create_conversation_response"
+    )
+
+    if not response.get("success"):
+
+        raise RuntimeError(
+            "Failed to create conversation."
+        )
+
+    return response[
+        "conversation"
+    ]
+
+
+async def get_history(
+    websocket,
+    conversation_id
+):
+
+    await websocket.send(
+        json.dumps({
+            "type": "get_messages",
+            "conversation_id": conversation_id
+        })
+    )
+
+    data = await receive_until(
+        websocket,
+        "message_history"
+    )
+
+    return data.get(
+        "messages",
+        []
+    )
+
+
+async def send_message(
+    websocket,
+    conversation_id,
+    content
+):
+
+    await websocket.send(
+        json.dumps({
+            "type": "send_message",
+            "conversation_id": conversation_id,
+            "content": content
+        })
+    )
+
+    return await receive_until(
+        websocket,
+        "new_message"
+    )
+
+
+async def acknowledge_message(
+    websocket,
+    message_id
+):
+
+    print(
+        f"\nBrother -> delivered "
+        f"message {message_id}"
+    )
+
+    await websocket.send(
+        json.dumps({
+            "type": "message_delivered",
+            "message_id": message_id
+        })
+    )
+
+    await asyncio.sleep(1)
+
+    print(
+        f"Brother -> read "
+        f"message {message_id}"
+    )
+
+    await websocket.send(
+        json.dumps({
+            "type": "message_read",
+            "message_id": message_id
+        })
+    )
+
+
+async def handle_history_receipts(
+    websocket,
+    messages,
+    user_id
+):
+
+    for message in messages:
+
+        if message.get(
+            "sender_id"
+        ) == user_id:
+
+            continue
+
+        receipts = message.get(
+            "receipts",
+            {}
+        )
+
+        status = receipts.get(
+            str(user_id)
+        )
+
+        message_id = message.get(
+            "message_id"
+        )
+
+        if status == "sent":
+
+            print(
+                f"\nBrother found offline "
+                f"message {message_id}."
+            )
+
+            await websocket.send(
+                json.dumps({
+                    "type": "message_delivered",
+                    "message_id": message_id
+                })
+            )
+
+            await asyncio.sleep(0.5)
+
+            await websocket.send(
+                json.dumps({
+                    "type": "message_read",
+                    "message_id": message_id
+                })
+            )
+
+
+async def main():
+
+    async with websockets.connect(
+        SERVER_URL
+    ) as websocket:
+
+        # ====================================================
+        # CONNECT
+        # ====================================================
+
+        await receive_until(
+            websocket,
+            "connected"
+        )
+
+        # ====================================================
+        # LOGIN
+        # ====================================================
+
+        await websocket.send(
+            json.dumps({
+                "type": "login",
+                "username": USERNAME
+            })
+        )
+
+        login = await receive_until(
+            websocket,
+            "login_response"
+        )
+
+        if not login.get("success"):
+
+            print(
+                "\nBrother login failed."
+            )
+
+            return
+
+        user_id = login[
+            "user"
+        ][
+            "user_id"
+        ]
+
+        print(
+            f"\nBrother logged in "
+            f"with ID {user_id}."
+        )
+
+        # ====================================================
+        # WAIT FOR MOM + DAD
+        # ====================================================
+
+        users = await wait_for_users(
+            websocket,
+            OTHER_USERS
+        )
+
+        user_map = build_user_map(
+            users
+        )
+
+        mom_id = user_map["Mom"]
+        dad_id = user_map["Dad"]
+
+        print(
+            "\nUsers:"
+        )
+
+        print(
+            json.dumps(
+                user_map,
+                indent=2
+            )
+        )
+
+        # ====================================================
+        # GET CONVERSATIONS
+        # ====================================================
+
+        conversations = await get_conversations(
+            websocket
+        )
+
+        # ====================================================
+        # BROTHER-MOM 1:1
+        # ====================================================
+
+        mom_brother = await get_or_create_conversation(
+            websocket,
+            conversations,
+            "Mom & Brother",
+            [
+                user_id,
+                mom_id
+            ]
+        )
+
+        conversations = await get_conversations(
+            websocket
+        )
+
+        # ====================================================
+        # BROTHER-DAD 1:1
+        # ====================================================
+
+        dad_brother = await get_or_create_conversation(
+            websocket,
+            conversations,
+            "Dad & Brother",
+            [
+                user_id,
+                dad_id
+            ]
+        )
+
+        conversations = await get_conversations(
+            websocket
+        )
+
+        # ====================================================
+        # FAMILY GROUP
+        # ====================================================
+
+        family_group = await get_or_create_conversation(
+            websocket,
+            conversations,
+            "Family Group",
+            [
+                user_id,
+                mom_id,
+                dad_id
+            ]
+        )
+
+        print(
+            "\n===================================="
+        )
+
+        print(
+            "Brother conversations ready:"
+        )
+
+        print(
+            f"1:1 Brother-Mom = "
+            f"{mom_brother['conversation_id']}"
+        )
+
+        print(
+            f"1:1 Brother-Dad = "
+            f"{dad_brother['conversation_id']}"
+        )
+
+        print(
+            f"Family Group     = "
+            f"{family_group['conversation_id']}"
+        )
+
+        print(
+            "===================================="
+        )
+
+        # ====================================================
+        # HISTORY
+        # ====================================================
+
+        for conversation in [
+            mom_brother,
+            dad_brother,
+            family_group
+        ]:
+
+            history = await get_history(
+                websocket,
+                conversation["conversation_id"]
+            )
+
+            print(
+                f"\nHistory for "
+                f"{conversation['name']}:"
+            )
+
+            print(
+                json.dumps(
+                    history,
+                    indent=2
+                )
+            )
+
+            await handle_history_receipts(
+                websocket,
+                history,
+                user_id
+            )
+
+        # ====================================================
+        # SEND 1:1 TO MOM
+        # ====================================================
+
+        print(
+            "\nSending Brother -> Mom 1:1..."
+        )
+
+        message = await send_message(
+            websocket,
+            mom_brother["conversation_id"],
+            "Hi Mom! This is a 1:1 message from Brother."
+        )
+
+        print(
+            f"\nBrother sent message "
+            f"{message['message_id']} "
+            f"to Mom."
+        )
+
+        # ====================================================
+        # SEND 1:1 TO DAD
+        # ====================================================
+
+        print(
+            "\nSending Brother -> Dad 1:1..."
+        )
+
+        message = await send_message(
+            websocket,
+            dad_brother["conversation_id"],
+            "Hi Dad! This is a 1:1 message from Brother."
+        )
+
+        print(
+            f"\nBrother sent message "
+            f"{message['message_id']} "
+            f"to Dad."
+        )
+
+        # ====================================================
+        # SEND GROUP MESSAGE
+        # ====================================================
+
+        print(
+            "\nSending Brother -> Family Group..."
+        )
+
+        message = await send_message(
+            websocket,
+            family_group["conversation_id"],
+            "Hello Mom and Dad! - Brother"
+        )
+
+        print(
+            f"\nBrother sent group message "
+            f"{message['message_id']}."
+        )
+
+        # ====================================================
+        # WAIT
+        # ====================================================
+
+        print(
+            "\nBrother is now waiting..."
+        )
+
+        while True:
+
+            response = await websocket.recv()
+
+            data = json.loads(
+                response
+            )
+
+            print(
+                "\nReceived:"
+            )
+
+            print(
+                json.dumps(
+                    data,
+                    indent=2
+                )
+            )
+
+            if data.get(
+                "type"
+            ) == "message_status":
+
+                print(
+                    f"\n>>> "
+                    f"{data.get('username')} "
+                    f"status for message "
+                    f"{data.get('message_id')}: "
+                    f"{data.get('status')}"
+                )
+
+            elif data.get(
+                "type"
+            ) == "new_message":
+
+                if data.get(
+                    "sender_id"
+                ) != user_id:
+
+                    await acknowledge_message(
+                        websocket,
+                        data["message_id"]
+                    )
 
 
 if __name__ == "__main__":
-    asyncio.run(test())
+    asyncio.run(main())

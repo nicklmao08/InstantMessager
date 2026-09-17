@@ -6,5 +6,85 @@
     "sender_username": "Mom",
     "content": "Hello Dad and Brother!",
     "timestamp": "2026-09-14T14:37:37.357754"
+  },
+  {
+    "message_id": 2,
+    "conversation_id": 1,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T15:12:49.900146"
+  },
+  {
+    "message_id": 3,
+    "conversation_id": 1,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T15:37:16.019707",
+    "receipts": {
+      "1": "delivered",
+      "2": "read"
+    }
+  },
+  {
+    "message_id": 4,
+    "conversation_id": 1,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T15:55:38.140074",
+    "receipts": {
+      "1": "delivered",
+      "2": "delivered"
+    }
+  },
+  {
+    "message_id": 5,
+    "conversation_id": 2,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T16:17:25.484675",
+    "receipts": {
+      "1": "read",
+      "2": "delivered"
+    }
+  },
+  {
+    "message_id": 6,
+    "conversation_id": 1,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T16:19:31.401557",
+    "receipts": {
+      "1": "read",
+      "2": "delivered"
+    }
+  },
+  {
+    "message_id": 7,
+    "conversation_id": 1,
+    "sender_id": 3,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T16:23:06.768034",
+    "receipts": {
+      "1": "read",
+      "2": "read"
+    }
+  },
+  {
+    "message_id": 8,
+    "conversation_id": 1,
+    "sender_id": 1,
+    "sender_username": "Mom",
+    "content": "Hello Dad and Brother!",
+    "timestamp": "2026-09-14T16:30:30.110882",
+    "receipts": {
+      "2": "read",
+      "3": "read"
+    }
   }
 ]
