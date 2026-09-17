@@ -1,0 +1,60 @@
+[
+  {
+    "conversation_id": 1,
+    "name": "b and a",
+    "participants": [
+      2,
+      1
+    ]
+  },
+  {
+    "conversation_id": 2,
+    "name": "abc",
+    "participants": [
+      2,
+      3,
+      1
+    ]
+  },
+  {
+    "conversation_id": 3,
+    "name": "c and b",
+    "participants": [
+      3,
+      1
+    ]
+  },
+  {
+    "conversation_id": 4,
+    "name": "abd",
+    "participants": [
+      2,
+      1,
+      4
+    ]
+  },
+  {
+    "conversation_id": 5,
+    "name": "c and b",
+    "participants": [
+      4,
+      3
+    ]
+  },
+  {
+    "conversation_id": 6,
+    "name": "2 and 1",
+    "participants": [
+      6,
+      5
+    ]
+  },
+  {
+    "conversation_id": 7,
+    "name": "1 and 3",
+    "participants": [
+      5,
+      7
+    ]
+  }
+]

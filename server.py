@@ -1625,6 +1625,8 @@ async def main():
         f"Server running on ws://localhost:{PORT}"
     )
 
+    load_conversations()
+
     async with websockets.serve(
         handle_client,
         HOST,
