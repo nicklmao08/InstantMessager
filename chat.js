@@ -605,6 +605,10 @@ function renderConversations() {
         );
     });
 }
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "Index.html";
+}
 function openUserChat(username) {
     console.log("OPEN USER CHAT CALLED:", username);
 
