@@ -11,7 +11,7 @@ let contacts =
     ) || [];
 
 let conversations = {};
-const socket = new WebSocket("ws://localhost:8765");
+const socket = new WebSocket("wss://instantmessager.onrender.com");
 
 socket.onopen = function () {
 
