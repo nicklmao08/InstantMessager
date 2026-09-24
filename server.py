@@ -76,8 +76,12 @@ def load_conversations():
         with open(CONVERSATIONS_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-        if isinstance(data, dict):
-            conversations = {int(k): v for k, v in data.items()}
+        if isinstance(data, list):
+            conversations = {
+                item["conversation_id"]: item
+                for item in data
+            }
+
             if conversations:
                 next_conversation_id = max(conversations.keys()) + 1
 
