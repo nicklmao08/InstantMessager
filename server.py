@@ -1657,7 +1657,9 @@ async def main():
     """Start the WebSocket server."""
 
     print(
-        f"Server running on ws://localhost:{PORT}"
+        print(
+    f"Server running on ws://{HOST}:{PORT}"
+)
     )
 
     load_conversations()
