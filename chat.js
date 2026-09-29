@@ -11,6 +11,7 @@ let contacts =
     ) || [];
 
 let conversations = {};
+console.log("Creating websocket...");
 const socket = new WebSocket("wss://instantmessager.onrender.com");
 
 socket.onopen = function () {
@@ -29,8 +30,6 @@ socket.onopen = function () {
 socket.onmessage = function(event) {
 
     const data = JSON.parse(event.data);
-
-    console.log("Received:", data);
 
     if (data.type === "user_list") {
         updateUsers(data.users);
@@ -188,7 +187,6 @@ function addContact() {
 
     // Check if already added
     const alreadyAdded =
-        console.log(contacts);
         contacts.some(function(contact) {
             return contact.username === username;
         });
@@ -206,7 +204,6 @@ function addContact() {
         "contacts_" + currentUsername,
         JSON.stringify(contacts)
     );
-    console.log("CONTACT ADDED:", foundUser.username);
 
     error.textContent = "";
 
@@ -283,12 +280,6 @@ function renderContacts() {
 }
 
 function openChat(conversationId) {
-
-    console.log(
-        "openChat called with:",
-        conversationId,
-        typeof conversationId
-    );
 
     socket.send(JSON.stringify({
         type: "get_messages",
@@ -610,7 +601,6 @@ function logout() {
     window.location.href = "Index.html";
 }
 function openUserChat(username) {
-    console.log("OPEN USER CHAT CALLED:", username);
 
     const selectedUser =
         users.find(
